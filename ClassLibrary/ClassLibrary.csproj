@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <BabelEnabled>true</BabelEnabled>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
+    <!-- <TargetFramework>net8.0</TargetFramework> -->
+    <!--<TargetFramework>net48</TargetFramework>-->
+
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(BabelEnabled)' == 'true'">
+    <ObfuscationType>Normal</ObfuscationType>
+    <ObfuscationDebug>true</ObfuscationDebug>
+  </PropertyGroup>
+  
+  <Import Project="..\Obfuscation\Obfuscation.props" />
+
+  <ItemGroup>
+    <PackageReference Include="Babel.Obfuscator" Version="11.0.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <Import Project="..\Obfuscation\Obfuscation.targets" />
+</Project>

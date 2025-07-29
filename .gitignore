@@ -7,6 +7,10 @@
 *.userosscache
 *.sln.docstates
 
+.vs
+.DS_Store
+MSBUILD_DEBUGLOG
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 # Build results

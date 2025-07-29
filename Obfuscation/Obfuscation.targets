@@ -1,0 +1,69 @@
+<Project>
+  <!-- Print debug info -->
+  <Target Name="PrintDebugInfo" AfterTargets="PostBuildEvent"
+          Condition="'$(BabelEnabled)' == 'true'" >
+    <Message Text="### $(ObfuscationType): ----------------------" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): TargetFramework: $(TargetFramework)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): Configuration: $(Configuration)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): ObfuscationType: $(ObfuscationType)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): AssemblyName: $(AssemblyName)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): TargetFileName: $(TargetFileName)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): ----------------------" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): ObfuscationHomeDir: $(ObfuscationHomeDir)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): GenerateMapOutFile: $(GenerateMapOutFile)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): BabelMapFilesDir: $(BabelMapFilesDir)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): MapInFile(s): @(MapInFile)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): BabelMapOutFile: $(BabelMapOutFile)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): BabelOutputFilesDir: $(BabelOutputFilesDir)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): UnobfuscatedFilesDir: $(UnobfuscatedFilesDir)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): BabelOutputFile: $(BabelOutputFile)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): OutDir: $(OutDir)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): ----------------------" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="### $(ObfuscationType): BuildDependsOn: $(BuildDependsOn)" Importance="$(ObfuscationDebugMessageImportance)" />
+  </Target>
+
+  <ImportGroup Condition="'$(BabelEnabled)' == 'true'">
+    <Import Project="NormalObfuscation.targets" Condition="'$(ObfuscationType)' == 'Normal'" />
+    <Import Project="NoObfuscation.targets" Condition="'$(ObfuscationType)' == 'None'" />
+  </ImportGroup>
+
+  <!-- Add generated files to Clean target. -->
+  <Target Name="CleanObfuscationDirs"
+          Condition="'$(BabelEnabled)' == 'true' AND '$(TargetFramework)' == 'net48'" 
+          AfterTargets="Clean">
+    <ItemGroup>
+      <CleanMapInFile Include="$(BabelMapFilesDir)\$(AssemblyName).dll.map.xml" />
+      <CleanObfuscatedFiles Include="$(BabelOutputFilesDir)\$(AssemblyName).dll" />
+      <CleanObfuscatedFiles Include="$(BabelOutputFilesDir)\$(AssemblyName).pdb" />
+      <CleanUnobfuscatedFiles Include="$(UnobfuscatedFilesDir)\$(AssemblyName).dll" />
+      <CleanUnobfuscatedFiles Include="$(UnobfuscatedFilesDir)\$(AssemblyName).pdb" />
+    </ItemGroup>
+    <Message Text="Cleaning obfuscation dirs in $(ObfuscationHomeDir) for $(AssemblyName)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="Cleaning MapInFile: @(CleanMapInFile)" Importance="$(ObfuscationDebugMessageImportance)"
+             Condition="Exists('@(CleanMapInFile)')" />
+    <Message Text="No MapInFile found." Importance="$(ObfuscationDebugMessageImportance)"
+             Condition="!Exists('@(CleanMapInFile)')" />
+    <Delete Files="@(CleanMapInFile)" 
+            Condition="Exists('@(CleanMapInFile)')"
+            ContinueOnError="WarnAndContinue" />
+    
+    <Message Text="Cleaning Obfuscated files: @(CleanObfuscatedFiles)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Delete Files="@(CleanObfuscatedFiles)" 
+            ContinueOnError="WarnAndContinue" />
+    
+    <Message Text="Cleaning Unobfuscated files: @(CleanUnobfuscatedFiles)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Delete Files="@(CleanUnobfuscatedFiles)" 
+            ContinueOnError="WarnAndContinue" />
+  </Target>
+
+  <!-- Wait for files to be available before proceeding -->
+  <Target Name="WaitForFiles" Outputs="">
+    <Message Text="Waiting for files: $(WaitForTheseFiles)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Exec Condition="!Exists('$(WaitForTheseFiles)')" Command="powershell -command Start-Sleep -s 2" />
+    <Exec Condition="!Exists('$(WaitForTheseFiles)')" Command="powershell -command Start-Sleep -s 4" />
+    <Exec Condition="!Exists('$(WaitForTheseFiles)')" Command="powershell -command Start-Sleep -s 8" />
+    <Exec Condition="!Exists('$(WaitForTheseFiles)')" Command="powershell -command Start-Sleep -s 16" />
+    <Exec Condition="!Exists('$(WaitForTheseFiles)')" Command="powershell -command Start-Sleep -s 32" />
+  </Target>
+  
+</Project>

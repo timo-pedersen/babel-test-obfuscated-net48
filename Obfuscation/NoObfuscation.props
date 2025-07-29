@@ -1,0 +1,18 @@
+<Project>
+
+  <Target Name="PrintDebugInfoNoneProps" BeforeTargets="PreBuildEvent">
+    <Message Text="NoObfuscation.props imported for $(TargetFramework) $(ProjectName)" Importance="$(ObfuscationDebugMessageImportance)" />
+  </Target>
+
+  <!-- Obfuscation settings for no obfuscation -->
+  <PropertyGroup>
+    <GenerateMapOutFile>false</GenerateMapOutFile>
+    <ObfuscateTypes>false</ObfuscateTypes>
+    <ObfuscateProperties>false</ObfuscateProperties>
+    <ObfuscateMethods>false</ObfuscateMethods>
+    <ObfuscateParameters>false</ObfuscateParameters>
+    <ObfuscateFields>false</ObfuscateFields>
+    <ObfuscateEvents>false</ObfuscateEvents>
+  </PropertyGroup>
+  
+</Project>

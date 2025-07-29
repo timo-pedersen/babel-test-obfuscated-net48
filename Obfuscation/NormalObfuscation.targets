@@ -1,0 +1,55 @@
+<Project>
+  
+  <Target Name="PrintDebugInfoNormalTargets" BeforeTargets="PreBuildEvent">
+    <Message Text="NormalObfuscation.targets imported for $(TargetFramework) $(ProjectName)" Importance="$(ObfuscationDebugMessageImportance)" />
+  </Target>
+
+  <!--<PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
+    <BuildDependsOn>
+      $(BuildDependsOn);
+      CopyObfuscatedFilesToBin
+    </BuildDependsOn>
+    <RebuildDependsOn>
+      $(RebuildDependsOn);
+      CopyObfuscatedFilesToBin
+    </RebuildDependsOn>
+  </PropertyGroup>-->
+
+  <!-- Make a backup of un-obfuscated files (.Net48 only). -->
+  <Target Name="BackupUnobfuscatedFiles" 
+          Condition="'$(TargetFramework)' == 'net48'">
+    <PropertyGroup>
+      <SourceFilesDir>$(ProjectDir)bin\$(Configuration)\$(TargetFramework)</SourceFilesDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <UnobfuscatedFilesToBackup Include="$(SourceFilesDir)\*.dll" />
+      <UnobfuscatedFilesToBackup Include="$(SourceFilesDir)\*.pdb" />
+    </ItemGroup>
+    <Message Text="BackupUnobfuscatedFiles: Copying files from $(SourceFilesDir) to $(UnobfuscatedFilesDir)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="BackupUnobfuscatedFiles: Files to copy: @(UnobfuscatedFilesToBackup)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Copy SourceFiles="@(UnobfuscatedFilesToBackup)" DestinationFolder="$(UnobfuscatedFilesDir)">
+      <Output TaskParameter="CopiedFiles" ItemName="SuccessfullyBackedUpFiles"/>
+    </Copy>
+    <Message Text="BackupUnobfuscatedFiles: Files copied:  @(SuccessfullyBackedUpFiles)" Importance="$(ObfuscationDebugMessageImportance)" />
+  </Target>
+
+  <!-- Copy obfuscated files to bin (.Net48 only) 
+       This ensures that after compiling .net48, we have obfuscated assemblies in the bin folder. -->
+  <Target Name="CopyObfuscatedFilesToBin"
+          AfterTargets="Build"
+          DependsOnTargets="BackupUnobfuscatedFiles"
+          Condition="'$(TargetFramework)' == 'net48'">
+      <ItemGroup>
+        <ObfuscatedFilesToCopy Include="$(BabelOutputFilesDir)\*.*" />
+        <ObfuscatedFilesToCopy Include="$(BabelOutputFilesDir)\*.*" />
+      </ItemGroup>
+    <Message Text="CopyObfuscatedFilesToBin: Copying files from $(BabelOutputFilesDir)\ to $(ProjectDir)$(OutDir)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="CopyObfuscatedFilesToBin: Files to copy: @(ObfuscatedFilesToCopy)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Copy SourceFiles="@(ObfuscatedFilesToCopy)" DestinationFolder="$(ProjectDir)$(OutDir)">
+      <Output TaskParameter="CopiedFiles" ItemName="SuccessfullyCopiedFiles"/>
+    </Copy>
+    <Message Text="CopyObfuscatedFilesToBin: Files copied:  @(SuccessfullyCopiedFiles)" Importance="$(ObfuscationDebugMessageImportance)" />
+  </Target>
+
+</Project>
+

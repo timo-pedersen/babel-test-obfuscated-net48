@@ -1,0 +1,116 @@
+<Project>
+  
+  <Target Name="PrintDebugInfoNoneTargets" BeforeTargets="PreBuildEvent">
+    <Message Text="NoObfuscation.targets imported for $(TargetFramework) $(ProjectName)" Importance="$(ObfuscationDebugMessageImportance)" />
+  </Target>
+
+  <!-- Due to paralell building, MapInFile items may not be available at the time of build.
+       This target ensures that the required map files are included in the build process. -->
+  <Target Name="EnsureRequiredMapFilesAreIncluded" 
+          BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <RequiredMapInFiles Include="@(ProjectReference -> '$(BabelMapFilesDir)\%(FileName).dll.map.xml')" />
+    </ItemGroup>
+    <Message Text="EnsureRequiredMapFilesAreIncluded: RequiredMapInFiles: @(RequiredMapInFiles)." Importance="$(ObfuscationDebugMessageImportance)" />
+
+    <PropertyGroup>
+      <WaitForTheseFiles>@(RequiredMapInFiles)</WaitForTheseFiles>
+    </PropertyGroup>
+    <MSBuild Projects ="$(MSBuildProjectFullPath)"
+             Properties="WaitForTheseFiles=$(WaitForTheseFiles)"
+             Targets="WaitForFiles" />
+    <PropertyGroup><WaitForTheseFiles></WaitForTheseFiles></PropertyGroup>
+    
+    <Message Condition="Exists('@(RequiredMapInFiles)')"
+             Text="EnsureRequiredMapFilesAreIncluded: Map file found in $(BabelMapFilesDir)." Importance="$(ObfuscationDebugMessageImportance)" />
+    <ItemGroup>
+      <MapInFile Remove="@(RequiredMapInFiles)" />
+      <MapInFile Include="@(RequiredMapInFiles)" />
+    </ItemGroup>
+    <Error Condition="!Exists('@(RequiredMapInFiles)')" 
+           Text="Map file(s) not found: @(RequiredMapInFiles)" />
+  </Target>
+  
+  <!-- .Net48 projects needs to be built against unobfuscated assemblies, so before build of e.g. a test project,
+        we need to copy the unobfuscated files to the referenced project's bin folder. -->
+  <Target Name="CopyUnobfuscatedFilesToBin"
+          BeforeTargets="CoreCompile"
+          Condition="'$(TargetFramework)' == 'net48'">
+      <ItemGroup>
+      <UnobfuscatedFilesToCopy Include="@(ProjectReference -> '$(UnobfuscatedFilesDir)\%(FileName).dll')" />
+      <UnobfuscatedFilesToCopy Include="@(ProjectReference -> '$(UnobfuscatedFilesDir)\%(FileName).pdb')" />
+      <UnobfuscatedDestinations Include="@(ProjectReference -> '%(RootDir)%(Directory)bin\$(Configuration)\$(TargetFramework)\%(FileName).dll')" />
+      <UnobfuscatedDestinations Include="@(ProjectReference -> '%(RootDir)%(Directory)bin\$(Configuration)\$(TargetFramework)\%(FileName).pdb')" />
+    </ItemGroup>
+    <Message Text="CopyUnobfuscatedFilesToBin: Files to copy: @(UnobfuscatedFilesToCopy)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="CopyUnobfuscatedFilesToBin: Destinations : @(UnobfuscatedDestinations)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <PropertyGroup>
+      <WaitForTheseFiles>@(UnobfuscatedFilesToCopy)</WaitForTheseFiles>
+    </PropertyGroup>
+    <MSBuild Projects ="$(MSBuildProjectFullPath)"
+             Properties="WaitForTheseFiles=$(WaitForTheseFiles)"
+             Targets="WaitForFiles" />
+    <PropertyGroup><WaitForTheseFiles></WaitForTheseFiles></PropertyGroup>
+
+    <Copy SourceFiles="@(UnobfuscatedFilesToCopy)"
+          DestinationFiles="@(UnobfuscatedDestinations)"
+          Retries="1000"
+          RetryDelayMilliseconds="1000">
+      <Output TaskParameter="CopiedFiles" ItemName="SuccessfullyCopiedUnObfFiles"/>
+    </Copy>
+    <Message Text="CopyUnobfuscatedFilesToBin: Files copied : @(SuccessfullyCopiedUnObfFiles)" Importance="$(ObfuscationDebugMessageImportance)" />
+  </Target>
+
+  <!-- After build of e.g. test project: Restore obfuscated files to the referenced project's bin folder. -->
+  <Target Name="CopyObfuscatedFilesToBin" 
+          AfterTargets="CoreBuild"
+          Condition="'$(TargetFramework)' == 'net48'">
+    <ItemGroup>
+      <ObfuscatedFilesToCopy Include="@(ProjectReference -> '$(BabelOutputFilesDir)\%(FileName).dll')" />
+      <ObfuscatedFilesToCopy Include="@(ProjectReference -> '$(BabelOutputFilesDir)\%(FileName).pdb')" />
+      <ObfuscatedDestinations Include="@(ProjectReference -> '%(RootDir)%(Directory)bin\$(Configuration)\$(TargetFramework)\%(FileName).dll')" />
+      <ObfuscatedDestinations Include="@(ProjectReference -> '%(RootDir)%(Directory)bin\$(Configuration)\$(TargetFramework)\%(FileName).pdb')" />
+    </ItemGroup>
+    <Message Text="CopyObfuscatedFilesToBin: Files to copy: @(ObfuscatedFilesToCopy)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="CopyObfuscatedFilesToBin: Destinations : @(ObfuscatedDestinations)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <PropertyGroup>
+      <WaitForTheseFiles>@(ObfuscatedFilesToCopy)</WaitForTheseFiles>
+    </PropertyGroup>
+    <MSBuild Projects ="$(MSBuildProjectFullPath)"
+             Properties="WaitForTheseFiles=$(WaitForTheseFiles)"
+             Targets="WaitForFiles" />
+    <PropertyGroup><WaitForTheseFiles></WaitForTheseFiles></PropertyGroup>
+
+    <Copy SourceFiles="@(ObfuscatedFilesToCopy)"
+          DestinationFiles="@(ObfuscatedDestinations)"
+          Retries="10"
+          RetryDelayMilliseconds="1000" >
+      <Output TaskParameter="CopiedFiles" ItemName="SuccessfullyCopiedObfFiles"/>
+    </Copy>
+    <Message Text="CopyObfuscatedFilesToBin: Files copied : @(SuccessfullyCopiedObfFiles)" Importance="$(ObfuscationDebugMessageImportance)" />
+  </Target>
+
+  <!-- After build of test project: Copy obfuscated files to the current project's bin folder. -->
+  <!-- Now tests can run against obfuscated code. -->
+  <Target Name="CopyObfuscatedFilesToCurrentProject" 
+          AfterTargets="CopyObfuscatedFilesToBin"
+          Condition="'$(TargetFramework)' == 'net48'">
+    <ItemGroup>
+      <ObfuscatedFilesToCopyToCurrentProjectBin Include="@(ProjectReference -> '$(BabelOutputFilesDir)\%(FileName).dll')" />
+      <ObfuscatedFilesToCopyToCurrentProjectBin Include="@(ProjectReference -> '$(BabelOutputFilesDir)\%(FileName).pdb')" />
+    </ItemGroup>
+    <PropertyGroup>
+      <ObfuscatedFilesLocalDestinationDir>$(ProjectDir)$(OutDir)</ObfuscatedFilesLocalDestinationDir>
+    </PropertyGroup>
+    <Message Text="CopyObfuscatedFilesToCurrentProject: Files to copy: @(ObfuscatedFilesToCopyToCurrentProjectBin)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Message Text="CopyObfuscatedFilesToCurrentProject: Destination folder: $(ObfuscatedFilesLocalDestinationDir)" Importance="$(ObfuscationDebugMessageImportance)" />
+    <Copy SourceFiles="@(ObfuscatedFilesToCopyToCurrentProjectBin)" 
+          DestinationFolder="$(ObfuscatedFilesLocalDestinationDir)"
+          Retries="10"
+          RetryDelayMilliseconds="1000" >
+      <Output TaskParameter="CopiedFiles" ItemName="SuccessfullyCopiedObfFilesToCurrentProject"/>
+    </Copy>
+    <Message Text="CopyObfuscatedFilesToCurrentProject: Files copied : @(SuccessfullyCopiedObfFilesToCurrentProject)" Importance="$(ObfuscationDebugMessageImportance)" />
+  </Target>
+</Project>
+

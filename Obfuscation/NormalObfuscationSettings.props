@@ -1,0 +1,14 @@
+<Project>
+  <!-- Obfuscate publics to ensure map files are needed. -->
+  <PropertyGroup>
+    <XmlRules>
+      <Rules>
+        <Rule name="obfuscate-public" exclude="false">
+          <Access>Public</Access>
+          <Pattern isRegEx="false">*</Pattern>
+          <Description>Obfuscate all public symbols.</Description>
+        </Rule>
+      </Rules>
+    </XmlRules>
+  </PropertyGroup>
+</Project>

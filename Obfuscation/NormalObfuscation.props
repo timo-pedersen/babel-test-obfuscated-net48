@@ -1,0 +1,19 @@
+<Project>
+
+  <Target Name="PrintDebugInfoNormalProps" BeforeTargets="PreBuildEvent">
+    <Message Text="NormalObfuscation.props imported for $(TargetFramework) $(ProjectName)" Importance="$(ObfuscationDebugMessageImportance)" />
+  </Target>
+
+  <Import Project="NormalObfuscationSettings.props" />
+  
+  <!-- Normal obfuscation settings -->
+  <PropertyGroup>
+    <GenerateMapOutFile>true</GenerateMapOutFile>
+    <BabelMapOutFile>$(BabelMapFilesDir)\$(AssemblyName).dll.map.xml</BabelMapOutFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
+    <BabelOutputFile>$(BabelOutputFilesDir)\$(AssemblyName).dll</BabelOutputFile>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,32 @@
+<Project>
+
+  <!-- 
+    ObfuscationType can be:
+    'Normal' - obfuscation is applied.  
+    'None' - Built assembly is processed by Babel, but no obfuscation is applied. 
+             This is necessary e.g. for running tests on obfuscated code.
+    ObfuscationDebug = true controls whether debug messages are output during obfuscation targets.
+  -->
+
+  <PropertyGroup Condition="'$(BabelEnabled)' == 'true'" >
+    <ObfuscationDebugMessageImportance Condition="'$(ObfuscationDebug)' == 'true'">High</ObfuscationDebugMessageImportance>
+    <ObfuscationDebugMessageImportance Condition="'$(ObfuscationDebug)' != 'true'">Normal</ObfuscationDebugMessageImportance>
+    
+    <ObfuscationHomeDir>$(SolutionDir)Obfuscation</ObfuscationHomeDir>
+    <BabelMapFilesDir>$(ObfuscationHomeDir)\MapOut\$(Configuration)\$(TargetFramework)</BabelMapFilesDir>
+    <UnobfuscatedFilesDir>$(ObfuscationHomeDir)\Unobfuscated\$(Configuration)\$(TargetFramework)</UnobfuscatedFilesDir>
+    <BabelOutputFilesDir>$(ObfuscationHomeDir)\Obfuscated\$(Configuration)\$(TargetFramework)</BabelOutputFilesDir>
+  </PropertyGroup>
+
+  <!-- Include all existing Map Files (except for current project) -->
+  <ItemGroup Condition="'$(BabelEnabled)' == 'true'">
+    <MapInFile Include="$(BabelMapFilesDir)\*.dll.map.xml" />
+    <MapInFile Remove="$(BabelMapFilesDir)\$(AssemblyName).dll.map.xml" />
+  </ItemGroup>
+
+  <ImportGroup Condition="'$(BabelEnabled)' == 'true'">
+    <Import Project="$(ObfuscationHomeDir)\NormalObfuscation.props" Condition="'$(ObfuscationType)' == 'Normal'" />
+    <Import Project="$(ObfuscationHomeDir)\NoObfuscation.props" Condition="'$(ObfuscationType)' == 'None'" />
+  </ImportGroup>
+
+</Project>

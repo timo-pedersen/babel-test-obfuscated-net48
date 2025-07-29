@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project>
+  <PropertyGroup>
+    <!-- Makes it possible to run dotnet from cmd line in project folders. -->
+    <SolutionDir Condition="'$(SolutionDir)' == ''">$(MSBuildThisFileDirectory)</SolutionDir> 
+  </PropertyGroup>
+</Project>

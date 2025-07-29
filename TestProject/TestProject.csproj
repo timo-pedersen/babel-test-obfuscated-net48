@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 
+  TODO: 
+  - Fix so that if obf is turned off from obf assembly, test project still works.
+  - Remove ObfuscationDebug property (defaults to Normal, no printing of debug info)
+  -->
+  
+  <PropertyGroup>
+    <BabelEnabled>true</BabelEnabled>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
+    <!--<TargetFramework>net8.0</TargetFramework>--> 
+    <!--<TargetFramework>net48</TargetFramework>-->
+    
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(BabelEnabled)' == 'true'">
+    <ObfuscationType>None</ObfuscationType>
+    <ObfuscationDebug>true</ObfuscationDebug>
+  </PropertyGroup>
+  
+  <Import Project="..\Obfuscation\Obfuscation.props" />
+
+  <ItemGroup>
+    <PackageReference Include="Babel.Obfuscator" Version="11.0.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
+    <PackageReference Include="xunit" Version="2.4.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="3.1.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ClassLibrary\ClassLibrary.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\Obfuscation\Obfuscation.targets" />
+</Project>
