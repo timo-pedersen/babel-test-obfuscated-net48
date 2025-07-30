@@ -40,8 +40,8 @@
           DependsOnTargets="BackupUnobfuscatedFiles"
           Condition="'$(TargetFramework)' == 'net48'">
       <ItemGroup>
-        <ObfuscatedFilesToCopy Include="$(BabelOutputFilesDir)\*.*" />
-        <ObfuscatedFilesToCopy Include="$(BabelOutputFilesDir)\*.*" />
+        <ObfuscatedFilesToCopy Include="$(BabelOutputFilesDir)\*.dll" />
+        <ObfuscatedFilesToCopy Include="$(BabelOutputFilesDir)\*.pdb" />
       </ItemGroup>
     <Message Text="CopyObfuscatedFilesToBin: Copying files from $(BabelOutputFilesDir)\ to $(ProjectDir)$(OutDir)" Importance="$(ObfuscationDebugMessageImportance)" />
     <Message Text="CopyObfuscatedFilesToBin: Files to copy: @(ObfuscatedFilesToCopy)" Importance="$(ObfuscationDebugMessageImportance)" />
